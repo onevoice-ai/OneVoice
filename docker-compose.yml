@@ -1,0 +1,67 @@
+version: '3'
+networks:
+  app_net:
+    driver: bridge
+
+# Define all the services for this application
+services:
+
+  # Redis service
+  redis:
+    image: redis  # use the official Redis image
+    expose:  # ports to expose within the internal network, not to the host machine
+      - 6379
+    healthcheck:  # healthcheck command for Redis service
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 30s
+      retries: 5
+    restart: always  # always restart this service if it stops
+    networks:  # this service belongs to these networks
+      - app_net
+
+    # primary PostgreSQL database service
+  db-master:
+    image: postgres:16-alpine  # use the official PostgreSQL image
+    env_file: .env  # Load environment variables from a file named .env
+    ports:  # map the PostgreSQL port to a port on the host machine
+      - '${PRIMARY_POSTGRES_PORT}:${POSTGRES_PORT}'
+    volumes:  # map the data directory in the container to a folder on the host machine
+      - ./postgres-master-data:/var/lib/postgresql/data:delegate
+      - ./db-master-entrypoint.sh:/docker-entrypoint-initdb.d/custom_entrypoint.sh
+    entrypoint: ["/docker-entrypoint-initdb.d/custom_entrypoint.sh"]
+    healthcheck:  # healthcheck command for PostgreSQL service
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      retries: 5
+    restart: always  # always restart this service if it stops
+    networks:  # this service belongs to these networks
+      - app_net
+
+  # secondary PostgreSQL database service
+  db-slave:
+    image: postgres:16-alpine  # use the official PostgreSQL image
+    env_file: .env  # Load environment variables from a file named .env
+    ports: # map the PostgreSQL port to a port on the host machine
+      - '${SECONDARY_POSTGRES_PORT}:${POSTGRES_PORT}'
+    volumes: # map the data directory in the container to a folder on the host machine
+      - ./postgres-slave-data:/var/lib/postgresql/data:delegate
+      - ./db-slave-entrypoint.sh:/docker-entrypoint-initdb.d/custom_entrypoint.sh
+    entrypoint: ["/docker-entrypoint-initdb.d/custom_entrypoint.sh"]
+    healthcheck: # healthcheck command for PostgreSQL service
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      retries: 5
+    restart: always  # always restart this service if it stops
+    networks: # this service belongs to these networks
+      - app_net
+    depends_on:
+      db-master:
+        condition: service_healthy  # only start this service if the db-master service is healthy
+
+# Declare volumes that can be used by services. Here, we're declaring a volume named 'db'.
+volumes:
+  postgres-master-data:
+    driver: local
+  postgres-slave-data:
+    driver: local

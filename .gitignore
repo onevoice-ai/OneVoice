@@ -1,0 +1,10 @@
+.DS_Store
+
+backend-service/
+frontend-service/
+survey-dashboard-backend-service/
+survey-dashboard-frontend-service/
+lizn-dashboard-backend-service
+
+postgres-master-data/
+postgres-slave-data/
