@@ -4,7 +4,8 @@ backend-service/
 frontend-service/
 survey-dashboard-backend-service/
 survey-dashboard-frontend-service/
-lizn-dashboard-backend-service
+communication-backend-service/
+url-shortening-backend-service/
 
 postgres-master-data/
 postgres-slave-data/

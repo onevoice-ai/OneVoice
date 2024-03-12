@@ -15,7 +15,7 @@ run_as_postgres() {
 }
 
 # Wait for master to become available, then run the base backup
-until PGPASSWORD=$POSTGRES_PASSWORD psql -h db-master -U $POSTGRES_USER -c '\l'; do
+until PGPASSWORD=$POSTGRES_PASSWORD psql -h db-master -U $POSTGRES_USER -d $CORE_DB -c '\l'; do
     echo 'Waiting for master to become available...'
     sleep 5
 done

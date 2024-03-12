@@ -38,11 +38,15 @@ if [ ! -s "$DATA_DIR/PG_VERSION" ]; then
     # Create the POSTGRES_USER if it doesn't exist (simplified for debugging)
     run_as_postgres "$PG_BIN_DIR/psql -v ON_ERROR_STOP=0 --username postgres -c 'CREATE USER \"$POSTGRES_USER\" WITH SUPERUSER PASSWORD '\''$POSTGRES_PASSWORD'\'';'"
 
-    # Create the POSTGRES_DB if it doesn't exist (simplified for debugging)
-    run_as_postgres "$PG_BIN_DIR/psql -v ON_ERROR_STOP=0 --username postgres -c 'CREATE DATABASE \"$POSTGRES_DB\" OWNER \"$POSTGRES_USER\";'"
+    # Create the CORE_DB if it doesn't exist (simplified for debugging)
+    run_as_postgres "$PG_BIN_DIR/psql -v ON_ERROR_STOP=0 --username postgres -c 'CREATE DATABASE \"$CORE_DB\" OWNER \"$POSTGRES_USER\";'"
+
+    # Create the DASHBOARD_DB if it doesn't exist (simplified for debugging)
+    run_as_postgres "$PG_BIN_DIR/psql -v ON_ERROR_STOP=0 --username postgres -c 'CREATE DATABASE \"$DASHBOARD_DB\" OWNER \"$POSTGRES_USER\";'"
 
     # Ensure POSTGRES_USER has replication permissions
-    run_as_postgres "$PG_BIN_DIR/psql -v ON_ERROR_STOP=1 --username $POSTGRES_USER --dbname $POSTGRES_DB -c 'ALTER USER \"$POSTGRES_USER\" WITH REPLICATION;'"
+    run_as_postgres "$PG_BIN_DIR/psql -v ON_ERROR_STOP=1 --username $POSTGRES_USER --dbname $CORE_DB -c 'ALTER USER \"$POSTGRES_USER\" WITH REPLICATION;'"
+    run_as_postgres "$PG_BIN_DIR/psql -v ON_ERROR_STOP=1 --username $POSTGRES_USER --dbname $DASHBOARD_DB -c 'ALTER USER \"$POSTGRES_USER\" WITH REPLICATION;'"
 
     # Stop the temporary PostgreSQL instance
     run_as_postgres "$PG_BIN_DIR/pg_ctl -D $DATA_DIR -m fast -w stop"
