@@ -6,6 +6,7 @@ survey-dashboard-backend-service/
 survey-dashboard-frontend-service/
 communication-backend-service/
 url-shortening-backend-service/
+rust-backend-service/
 
 postgres-master-data/
 postgres-slave-data/
